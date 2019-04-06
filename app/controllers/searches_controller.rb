@@ -2,10 +2,17 @@ class SearchesController < ApplicationController
   def search
   end
 
+  def friend
+    resp = Faraday.get("https://api.foursquare.com/v2/users/self/friends") do |req|
+      req.params['oauth_token'] = session[:token]
+      req.params['v'] = '20160201'
+    end
+    @friends = JSON.parse(resp.body)["response"]["friends"]["items"]
+
   def foursquare
 
-    client_id = ENV['FOURSQUARE_CLIENT_ID']
-    client_secret = ENV['FOURSQUARE_SECRET']
+    client_id = ENV['SHPP04BK4VTOLYHIUNOEZPOAFO1DPIC4FU1I1PH532PBBX0Y']
+    client_secret = ENV['WMVMDKQD0WRWIT41YUDBP5YJLWGM0245SIUWPDJNBDJTNUIJ']
 
     @resp = Faraday.get 'https://api.foursquare.com/v2/venues/search' do |req|
       req.params['client_id'] = client_id
@@ -16,6 +23,8 @@ class SearchesController < ApplicationController
     end
 
     body = JSON.parse(@resp.body)
+    session[:token] = body["access_token"]
+    redirect_to root_path
 
     if @resp.success?
       @venues = body["response"]["venues"]
